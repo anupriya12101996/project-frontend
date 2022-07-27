@@ -3,11 +3,17 @@ import { Link } from 'react-router-dom';
 import './Login.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import {useNavigate} from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setEmailValue } from '../../store/reducers/user-reducers';
+import env from '../../utils/AppDetails';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [check, setCheck] = useState('');
+    const navigate = useNavigate();
+    const userDispatch = useDispatch();
 
     const handleChange = (e) => {
         if (e.target.name == 'email') {
@@ -24,18 +30,15 @@ const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (check) {
-            axios.post('http://localhost:5000/user/login', {
+            axios.post(`${env.apiurl}login`, {
                 email: email,
                 password: password
             }).then(res => {
                 if (res.data.data) {
-                    Swal.fire({
-                        title: 'Success',
-                        text: 'Login Success',
-                        icon: 'success',
-                    });
                     setEmail("");
                     setPassword("");
+                    userDispatch(setEmailValue(res.data.data.email));
+                    navigate('/view-student');
                 }
                 else {
                     Swal.fire({

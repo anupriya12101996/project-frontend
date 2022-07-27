@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './Authentication.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import env from '../../utils/AppDetails';
 
 const Authentication = () => {
     const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ const Authentication = () => {
         e.preventDefault();
         if (check) {
             if(password == confirmpass){
-                axios.post('http://localhost:5000/user/register', {
+                axios.post(`${env.apiurl}register`, {
                     email: email,
                     password: password,
                     confirmpassword: confirmpass
