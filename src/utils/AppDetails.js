@@ -1,5 +1,5 @@
 const env = {
-    apiurl : 'http://localhost:5000/user/',
+    apiurl : 'https://student-testingapp.herokuapp.com/user/',
 }
 
 export default env;
