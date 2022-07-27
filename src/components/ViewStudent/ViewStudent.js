@@ -82,7 +82,13 @@ const ViewStudent = () => {
   }
 
   const downloadData = () => {
-    const workSheet = XLSX.utils.json_to_sheet(students);
+    const finalArray = students.map(x => {
+      delete x["_id"];
+      return {
+        ...x,
+      }
+    });
+    const workSheet = XLSX.utils.json_to_sheet(finalArray);
     const workBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workBook, workSheet, "Students List");
     XLSX.writeFile(workBook, "Students.xlsx");
