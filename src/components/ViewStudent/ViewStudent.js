@@ -1,10 +1,12 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidenav from '../SideNav/Sidenav';
 import './ViewStudent.css';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import env from '../../utils/AppDetails';
+import EditStudent from '../EditStudent/EditStudent';
+import * as XLSX from 'xlsx';
 
 const ViewStudent = () => {
 
@@ -13,42 +15,49 @@ const ViewStudent = () => {
   }, []);
 
   const [students, setStudents] = useState([]);
+  const [showEdit, setShowEdit] = useState(false);
+  const [currData, setCurrData] = useState({});
   const columns = [
     { field: 'id', headerName: 'ID' },
     { field: 'fullname', headerName: 'Full Name' },
-    { field: 'dob', headerName: 'Age', type: 'number'},
-    { field: 'school', headerName: 'School'},
-    { field: 'class', headerName: 'Class'},
-    { field: 'division', headerName: 'Division'},
-    { field: 'status', headerName: 'Status'},
-    { field: 'edit', headerName: 'Edit', renderCell: (params) => {
-      const handleClick = () => {
-        alert("Edit")
+    { field: 'dob', headerName: 'Age', type: 'number' },
+    { field: 'school', headerName: 'School' },
+    { field: 'class', headerName: 'Class' },
+    { field: 'division', headerName: 'Division' },
+    { field: 'status', headerName: 'Status' },
+    {
+      field: 'edit', headerName: 'Edit', renderCell: (params) => {
+        const handleClick = () => {
+          setCurrData(params.row);
+          handleShowEdit();
+        }
+        return <button className="btn btn-edit" onClick={handleClick}>Edit</button>
       }
-      return <button className="btn btn-edit" onClick={handleClick}>Edit</button>
-    }},
-    { field: 'delete', headerName: 'Delete', renderCell: (params) => {
-      const handleClick = () => {
-        axios.post(`${env.apiurl}delete-student`, {id: params.row._id}).then(res => {
-          if(res.data.data){
-            getStudentData();
-            Swal.fire({
-              title: 'Success',
-              text: 'Student Deleted Successfully',
-              icon: 'success',
-            });
-          }
-        }, err => {
-          console.log(err);
-        });
+    },
+    {
+      field: 'delete', headerName: 'Delete', renderCell: (params) => {
+        const handleClick = () => {
+          axios.post(`${env.apiurl}delete-student`, { id: params.row._id }).then(res => {
+            if (res.data.data) {
+              getStudentData();
+              Swal.fire({
+                title: 'Success',
+                text: 'Student Deleted Successfully',
+                icon: 'success',
+              });
+            }
+          }, err => {
+            console.log(err);
+          });
+        }
+        return <button className="btn btn-delete" onClick={handleClick}>Delete</button>
       }
-      return <button className="btn btn-delete" onClick={handleClick}>Delete</button>
-    }},
+    },
   ];
 
   const getStudentData = () => {
     axios.get(`${env.apiurl}get-student`).then(res => {
-      if(res.data.data){
+      if (res.data.data) {
         let newArray = res.data.data.map((x, index) => {
           return {
             _id: x._id,
@@ -58,7 +67,7 @@ const ViewStudent = () => {
             school: x.school,
             class: x.class,
             division: x.division,
-            status: x.status ? 'Active' : 'Inactive',
+            status: x.status == 'true' ? 'Active' : 'Inactive',
           }
         });
         setStudents(newArray);
@@ -68,8 +77,20 @@ const ViewStudent = () => {
     });
   }
 
+  const handleShowEdit = () => {
+    setShowEdit(!showEdit);
+  }
+
+  const downloadData = () => {
+    const workSheet = XLSX.utils.json_to_sheet(students);
+    const workBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workBook, workSheet, "Students List");
+    XLSX.writeFile(workBook, "Students.xlsx");
+  }
+
   return (
     <div className='add-holder'>
+      {showEdit ? <EditStudent currData={currData} handleShowEdit={handleShowEdit} getStudentData={getStudentData} /> : null}
       <Sidenav />
       <div className='right-holder'>
         {students.length > 0 ? (<div style={{ height: 320 }}>
@@ -81,8 +102,9 @@ const ViewStudent = () => {
             className="table-holder"
           />
         </div>) : (
-          <h1>Test</h1>
+          <h1>No Data Found..!!</h1>
         )}
+        <button className='download-btn' onClick={downloadData}>Download Excel</button>
       </div>
     </div>
   )
